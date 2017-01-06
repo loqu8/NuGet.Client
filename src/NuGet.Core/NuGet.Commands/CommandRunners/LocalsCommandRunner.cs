@@ -20,12 +20,14 @@ namespace NuGet.Commands
             Unknown,
             HttpCache,
             GlobalPackagesFolder,
+            PackagesCache,
             Temp,
             All
         }
 
         private const string HttpCacheResourceName = "http-cache";
         private const string GlobalPackagesResourceName = "global-packages";
+        private const string PackagesCacheResourceName = "packages-cache";
         private const string AllResourceName = "all";
         private const string TempResourceName = "temp";
 
@@ -72,6 +74,10 @@ namespace NuGet.Commands
                     PrintLocalResourcePath(HttpCacheResourceName, SettingsUtility.GetHttpCacheFolder(), localsArgs);
                     break;
 
+                case LocalResourceName.PackagesCache:
+                    PrintLocalResourcePath(PackagesCacheResourceName, MachineCache.Default?.Source);
+                    break;
+
                 case LocalResourceName.GlobalPackagesFolder:
                     PrintLocalResourcePath(GlobalPackagesResourceName, SettingsUtility.GetGlobalPackagesFolder(localsArgs.Settings), localsArgs);
                     break;
@@ -82,6 +88,7 @@ namespace NuGet.Commands
 
                 case LocalResourceName.All:
                     PrintLocalResourcePath(HttpCacheResourceName, SettingsUtility.GetHttpCacheFolder(), localsArgs);
+                    PrintLocalResourcePath(PackagesCacheResourceName, MachineCache.Default?.Source);
                     PrintLocalResourcePath(GlobalPackagesResourceName, SettingsUtility.GetGlobalPackagesFolder(localsArgs.Settings), localsArgs);
                     PrintLocalResourcePath(TempResourceName, NuGetEnvironment.GetFolderPath(NuGetFolderPath.Temp), localsArgs);
                     break;
@@ -125,6 +132,10 @@ namespace NuGet.Commands
                     success &= ClearNuGetHttpCache(localsArgs);
                     break;
 
+                case LocalResourceName.PackagesCache:
+                    success &= ClearNuGetPackagesCache();
+                    break;
+
                 case LocalResourceName.GlobalPackagesFolder:
                     success &= ClearNuGetGlobalPackagesFolder(localsArgs);
                     break;
@@ -136,6 +147,7 @@ namespace NuGet.Commands
                 case LocalResourceName.All:
                     success &= ClearNuGetHttpCache(localsArgs);
                     success &= ClearNuGetGlobalPackagesFolder(localsArgs);
+                    success &= ClearNuGetPackagesCache();
                     success &= ClearNuGetTempFolder(localsArgs);
                     break;
 
@@ -166,6 +178,22 @@ namespace NuGet.Commands
             localsArgs.LogInformation(string.Format(CultureInfo.CurrentCulture, Strings.LocalsCommand_ClearingNuGetGlobalPackagesCache, globalPackagesFolderPath));
 
             success &= ClearCacheDirectory(globalPackagesFolderPath, localsArgs);
+            return success;
+        }
+
+        /// <summary>
+        /// Clear the NuGet machine cache.
+        /// </summary>
+        /// <returns><code>True</code> if the operation was successful; otherwise <code>false</code>.</returns>
+        private bool ClearNuGetPackagesCache()
+        {
+            var success = true;
+            if (!string.IsNullOrEmpty(MachineCache.Default?.Source))
+            {
+                Console.WriteLine(Strings.LocalsCommand_ClearingNuGetCache, MachineCache.Default.Source);
+
+                success = ClearCacheDirectory(MachineCache.Default.Source);
+            }
             return success;
         }
 
@@ -221,6 +249,10 @@ namespace NuGet.Commands
             else if (string.Equals(localResourceName, HttpCacheResourceName, StringComparison.OrdinalIgnoreCase))
             {
                 return LocalResourceName.HttpCache;
+            }
+            else if (string.Equals(localResourceName, PackagesCacheResourceName, StringComparison.OrdinalIgnoreCase))
+            {
+                return LocalResourceName.PackagesCache;
             }
             else if (string.Equals(localResourceName, GlobalPackagesResourceName, StringComparison.OrdinalIgnoreCase))
             {
