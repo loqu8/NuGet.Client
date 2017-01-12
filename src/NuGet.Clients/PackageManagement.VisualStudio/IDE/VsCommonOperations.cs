@@ -5,26 +5,29 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
 using System.IO;
-using EnvDTE;
 using Microsoft.VisualStudio.Shell;
 using Task = System.Threading.Tasks.Task;
 
 namespace NuGet.PackageManagement.VisualStudio
 {
     [Export(typeof(ICommonOperations))]
-    public class VsCommonOperations : ICommonOperations
+    internal sealed class VsCommonOperations : ICommonOperations
     {
-        private readonly DTE _dte;
+        private readonly Lazy<EnvDTE.DTE> _dte;
         private IDictionary<string, ISet<VsHierarchyItem>> _expandedNodes;
 
-        public VsCommonOperations()
-            : this(ServiceLocator.GetInstance<DTE>())
+        [ImportingConstructor]
+        public VsCommonOperations(
+            [Import(typeof(SVsServiceProvider))]
+            IServiceProvider serviceProvider)
         {
-        }
+            if (serviceProvider == null)
+            {
+                throw new ArgumentNullException(nameof(serviceProvider));
+            }
 
-        public VsCommonOperations(DTE dte)
-        {
-            _dte = dte;
+            _dte = new Lazy<EnvDTE.DTE>(
+                () => serviceProvider.GetDTE());
         }
 
         public Task OpenFile(string fullPath)
@@ -38,14 +41,14 @@ namespace NuGet.PackageManagement.VisualStudio
                 {
                     await ThreadHelper.JoinableTaskFactory.SwitchToMainThreadAsync();
 
-                    if (_dte.ItemOperations != null
+                    if (_dte.Value.ItemOperations != null
                         && File.Exists(fullPath))
                     {
-                        Window window = _dte.ItemOperations.OpenFile(fullPath);
+                        var window = _dte.Value.ItemOperations.OpenFile(fullPath);
                         return Task.FromResult(0);
                     }
 
-                    return Task.FromResult(0);
+                    return Task.CompletedTask;
                 });
         }
 
@@ -62,7 +65,7 @@ namespace NuGet.PackageManagement.VisualStudio
 
                 _expandedNodes = await VsHierarchyUtility.GetAllExpandedNodesAsync(solutionManager);
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             });
         }
 
@@ -79,7 +82,7 @@ namespace NuGet.PackageManagement.VisualStudio
 
                 await VsHierarchyUtility.CollapseAllNodesAsync(solutionManager, _expandedNodes);
 
-                return Task.FromResult(0);
+                return Task.CompletedTask;
             });
         }
     }

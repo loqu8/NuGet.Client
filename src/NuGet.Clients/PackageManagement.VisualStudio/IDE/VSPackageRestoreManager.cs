@@ -10,24 +10,22 @@ using NuGet.Protocol.Core.Types;
 namespace NuGet.PackageManagement.VisualStudio
 {
     [Export(typeof(IPackageRestoreManager))]
-    public class VSPackageRestoreManager : PackageRestoreManager
+    internal sealed class VSPackageRestoreManager : PackageRestoreManager
     {
         private ISolutionManager SolutionManager { get; }
 
-        public VSPackageRestoreManager()
-            : this(
-                ServiceLocator.GetInstance<ISourceRepositoryProvider>(),
-                ServiceLocator.GetInstance<Configuration.ISettings>(),
-                ServiceLocator.GetInstance<ISolutionManager>())
-        {
-        }
-
+        [ImportingConstructor]
         public VSPackageRestoreManager(
             ISourceRepositoryProvider sourceRepositoryProvider,
             Configuration.ISettings settings,
             ISolutionManager solutionManager)
             : base(sourceRepositoryProvider, settings, solutionManager)
         {
+            if (solutionManager == null)
+            {
+                throw new ArgumentNullException(nameof(solutionManager));
+            }
+
             SolutionManager = solutionManager;
             SolutionManager.NuGetProjectAdded += OnNuGetProjectAdded;
             SolutionManager.SolutionOpened += OnSolutionOpenedOrClosed;
