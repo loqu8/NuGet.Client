@@ -200,12 +200,28 @@ namespace NuGet.PackageManagement.UI
                 tasks.Add(_localRepository.GetPackageMetadataFromLocalSourceAsync(identity, cancellationToken));
             }
 
-            var ignored = tasks
-                .Select(task => task.ContinueWith(LogError, TaskContinuationOptions.OnlyOnFaulted))
-                .ToArray();
+            var completed = new List<IPackageSearchMetadata>();
 
-            var completed = (await Task.WhenAll(tasks))
-                .Where(m => m != null);
+            foreach (var task in tasks)
+            {
+                try
+                {
+                    var result = await task;
+                    if (result != null)
+                    {
+                        completed.Add(result);
+                    }
+                }
+                catch
+                {
+                    LogError(task);
+                }
+            }
+
+            if (completed.Count == 0)
+            {
+                return Enumerable.Empty<VersionInfo>();
+            }
 
             return await MergeVersionsAsync(identity, completed);
         }
