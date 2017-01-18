@@ -81,6 +81,9 @@ Copyright (c) .NET Foundation. All rights reserved.
     <ConvertToAbsolutePath Paths="$(RestoreOutputPath)">
       <Output TaskParameter="AbsolutePaths" PropertyName="RestoreOutputAbsolutePath" />
     </ConvertToAbsolutePath>
+    <ConvertToAbsolutePath Paths="$(PackageOutputPath)">
+      <Output TaskParameter="AbsolutePaths" PropertyName="PackageOutputAbsolutePath" />
+    </ConvertToAbsolutePath>
     <ConvertToAbsolutePath Condition="$(NuspecFile) != ''" Paths="$(NuspecFile)">
       <Output TaskParameter="AbsolutePaths" PropertyName="NuspecFileAbsolutePath" />
     </ConvertToAbsolutePath>
@@ -124,7 +127,9 @@ Copyright (c) .NET Foundation. All rights reserved.
               ContentTargetFolders="$(ContentTargetFolders)"
               RestoreOutputPath="$(RestoreOutputAbsolutePath)"
               NuspecFile="$(NuspecFileAbsolutePath)"/>
+    <Message Text="Project packed successfully. Output available at $(PackageOutputAbsolutePath)" Importance="High"/>
   </Target>
+  
   <!--
     ============================================================
     _LoadPackGraphEntryPoints
