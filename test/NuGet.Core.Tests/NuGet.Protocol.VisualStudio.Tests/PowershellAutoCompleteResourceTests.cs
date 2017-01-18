@@ -22,7 +22,7 @@ namespace NuGet.Protocol.VisualStudio.Tests
         {
             ResponsesDict = new Dictionary<string, string>();
             ResponsesDict.Add(
-                "http://testsource.com/v3/index.json",
+                "http://source.test/v3/index.json",
                 JsonData.IndexJson);
             ResponsesDict.Add(
                 "https://nuget.org/api/v2/",
@@ -42,7 +42,7 @@ namespace NuGet.Protocol.VisualStudio.Tests
         }
 
         [Theory]
-        [InlineData("http://testsource.com/v3/index.json")]
+        [InlineData("http://source.test/v3/index.json")]
         [InlineData("https://nuget.org/api/v2/")]
         public async Task PowershellAutoComplete_VersionStartsWithReturnsExpectedResults(string sourceUrl)
         {
@@ -67,7 +67,7 @@ namespace NuGet.Protocol.VisualStudio.Tests
         }
 
         [Theory]
-        [InlineData("http://testsource.com/v3/index.json")]
+        [InlineData("http://source.test/v3/index.json")]
         [InlineData("https://nuget.org/api/v2/")]
         public async Task PowershellAutoComplete_IdStartsWithReturnsExpectedResults(string sourceUrl)
         {
@@ -86,7 +86,7 @@ namespace NuGet.Protocol.VisualStudio.Tests
         }
 
         [Theory]
-        [InlineData("http://testsource.com/v3/index.json")]
+        [InlineData("http://source.test/v3/index.json")]
         [InlineData("https://nuget.org/api/v2/")]
         public async Task PowershellAutoComplete_IdStartsWithCancelsAsAppropriate(string sourceUrl)
         {
